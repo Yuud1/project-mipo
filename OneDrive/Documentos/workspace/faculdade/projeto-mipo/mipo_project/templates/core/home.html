@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+
+{% block title %}MIPO - Plataforma de Voluntariado{% endblock %}
+
+{% block content %}
+<style>
+.card-text.descricao-fixa {
+    min-height: 72px; /* Ajuste conforme necessário para 2-3 linhas */
+    display: block;
+    overflow: hidden;
+}
+.card.h-100, .carousel-item .card {
+    min-height: 320px; /* Ajuste conforme necessário */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.carousel-indicators [data-bs-target] {
+    background-color: #0d6efd;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin: 0 4px;
+    opacity: 0.5;
+}
+.carousel-indicators .active {
+    opacity: 1;
+}
+.carousel-indicators {
+    bottom: -50px;
+}
+</style>
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <h2 class="mb-4">Oportunidades Disponíveis</h2>
+
+        {% if ultimas_vagas %}
+        <!-- Carrossel das 3 últimas vagas -->
+        <div id="carrosselVagas" class="carousel slide mb-5" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                {% for vaga in ultimas_vagas %}
+                <button type="button" data-bs-target="#carrosselVagas" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            <div class="carousel-inner">
+                {% for vaga in ultimas_vagas %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if vaga.organizacao.foto %}
+                                    <img src="{{ vaga.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ vaga.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                {% endif %}
+                                <h4 class="card-title mb-0">{{ vaga.titulo|truncatechars:40 }}</h4>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ vaga.data|date:"d/m/Y" }}</h6>
+                            <p class="card-text descricao-fixa">{{ vaga.descricao|truncatechars:120 }}</p>
+                            <p class="mb-1"><strong>Organização:</strong> {{ vaga.organizacao.nome|truncatechars:30 }}</p>
+                            <p class="mb-1"><strong>Local:</strong> {{ vaga.local|truncatechars:30 }}</p>
+                            <p class="mb-1"><strong>Vagas:</strong> {{ vaga.quantidade_vagas }}</p>
+                            <a href="{% url 'detalhe_oportunidade' vaga.id %}" class="btn btn-primary mt-2">Ver detalhes</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carrosselVagas" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carrosselVagas" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Próximo</span>
+            </button>
+        </div>
+        {% endif %}
+
+        {% if vagas_antigas %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for oportunidade in vagas_antigas %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if oportunidade.organizacao.foto %}
+                                <img src="{{ oportunidade.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ oportunidade.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                            {% endif %}
+                            <h5 class="card-title mb-0">{{ oportunidade.titulo|truncatechars:40 }}</h5>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ oportunidade.data|date:"d/m/Y" }}</h6>
+                        <p class="card-text descricao-fixa">{{ oportunidade.descricao|truncatechars:120 }}</p>
+                        <p class="mb-1"><strong>Organização:</strong> {{ oportunidade.organizacao.nome|truncatechars:30 }}</p>
+                        <p class="mb-1"><strong>Local:</strong> {{ oportunidade.local|truncatechars:30 }}</p>
+                        <p class="mb-1"><strong>Vagas:</strong> {{ oportunidade.quantidade_vagas }}</p>
+                        <a href="{% url 'detalhe_oportunidade' oportunidade.id %}" class="btn btn-outline-primary mt-2">Ver detalhes</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="alert alert-info mt-4">
+                Nenhuma oportunidade disponível no momento.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

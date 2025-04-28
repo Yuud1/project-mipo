@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+
+{% block title %}MIPO - Feedback{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h2>Dar Feedback</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="voluntario" class="form-label">Voluntário</label>
+                        <select class="form-select" id="voluntario" name="voluntario" required>
+                            <option value="">Selecione o voluntário</option>
+                            {% for inscricao in inscricoes %}
+                                <option value="{{ inscricao.voluntario.id }}">{{ inscricao.voluntario.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="nota" class="form-label">Nota (1-5)</label>
+                        <input type="number" class="form-control" id="nota" name="nota" min="1" max="5" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Enviar Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
