@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+
+{% block title %}MIPO - Criar Oportunidade{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h2>Criar Nova Oportunidade</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título</label>
+                        {{ form.titulo }}
+                        {% if form.titulo.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.titulo.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        {{ form.descricao }}
+                        {% if form.descricao.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.descricao.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="data" class="form-label">Data</label>
+                            {{ form.data }}
+                            {% if form.data.errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.data.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="quantidade_vagas" class="form-label">Quantidade de Vagas</label>
+                            {{ form.quantidade_vagas }}
+                            {% if form.quantidade_vagas.errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.quantidade_vagas.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="local" class="form-label">Local</label>
+                        {{ form.local }}
+                        {% if form.local.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.local.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Criar Oportunidade</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

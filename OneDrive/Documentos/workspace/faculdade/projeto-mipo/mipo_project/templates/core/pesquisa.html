@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+
+{% block title %}MIPO - Pesquisa de Oportunidades{% endblock %}
+
+{% block content %}
+<style>
+.card-text.descricao-fixa {
+    min-height: 72px;
+    display: block;
+    overflow: hidden;
+}
+.card.h-100 {
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+</style>
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-10">
+                        <input type="text" name="q" class="form-control" placeholder="Pesquisar oportunidades por título, descrição, organização ou local..." value="{{ query }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if query %}
+            <h2 class="mb-4">Resultados da Pesquisa</h2>
+            <p>Mostrando resultados para: "{{ query }}"</p>
+        {% endif %}
+
+        {% if oportunidades %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for oportunidade in oportunidades %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if oportunidade.organizacao.foto %}
+                                <img src="{{ oportunidade.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ oportunidade.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                            {% endif %}
+                            <h5 class="card-title mb-0">{{ oportunidade.titulo|truncatechars:40 }}</h5>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ oportunidade.data|date:"d/m/Y" }}</h6>
+                        <p class="card-text descricao-fixa">{{ oportunidade.descricao|truncatechars:120 }}</p>
+                        <p class="mb-1"><strong>Organização:</strong> {{ oportunidade.organizacao.nome|truncatechars:30 }}</p>
+                        <p class="mb-1"><strong>Local:</strong> {{ oportunidade.local|truncatechars:30 }}</p>
+                        <p class="mb-1"><strong>Vagas:</strong> {{ oportunidade.quantidade_vagas }}</p>
+                        <a href="{% url 'detalhe_oportunidade' oportunidade.id %}" class="btn btn-outline-primary mt-2">Ver detalhes</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="alert alert-info mt-4">
+                {% if query %}
+                    Nenhuma oportunidade encontrada.
+                {% else %}
+                    Digite algo para pesquisar.
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
