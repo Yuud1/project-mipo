@@ -3,8 +3,37 @@
 {% block title %}MIPO - Minhas Atividades{% endblock %}
 
 {% block content %}
+<style>
+.card-text.descricao-fixa {
+    min-height: 72px;
+    display: block;
+    overflow: hidden;
+}
+.card.h-100 {
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.btn-flutuante {
+    position: fixed;
+    bottom: 80px;
+    right: 32px;
+    z-index: 1050;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 0;
+    line-height: 1;
+}
+</style>
 <div class="row">
-    <div class="col-md-8 mx-auto">
+    <div class="col-md-10 mx-auto">
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h2 class="mb-0">Minhas Atividades</h2>
@@ -13,63 +42,75 @@
                 {% if is_organizacao %}
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3>Minhas Oportunidades</h3>
-                        <a href="{% url 'criar_oportunidade' %}" class="btn btn-success">
-                            <i class="bi bi-plus-circle"></i> Criar Nova Oportunidade
+                        <a href="{% url 'criar_oportunidade' %}" class="btn btn-success btn-flutuante">
+                            <i class="bi bi-plus-circle" style="font-size: 1.8rem;"></i>
                         </a>
                     </div>
-                    <div class="list-group">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                         {% for oportunidade in oportunidades %}
-                            <a href="{% url 'detalhe_oportunidade' oportunidade.id %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex align-items-center mb-2">
-                                    {% if oportunidade.organizacao.foto %}
-                                        <img src="{{ oportunidade.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                                    {% else %}
-                                        <img src="https://ui-avatars.com/api/?name={{ oportunidade.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                                    {% endif %}
-                                    <h5 class="mb-1">{{ oportunidade.titulo }}</h5>
-                                    <small class="ms-auto">{{ oportunidade.data|date:"d/m/Y" }}</small>
+                            <div class="col">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-2">
+                                            {% if oportunidade.organizacao.foto %}
+                                                <img src="{{ oportunidade.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% else %}
+                                                <img src="https://ui-avatars.com/api/?name={{ oportunidade.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% endif %}
+                                            <h5 class="card-title mb-0">{{ oportunidade.titulo|truncatechars:40 }}</h5>
+                                        </div>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{ oportunidade.data|date:"d/m/Y" }}</h6>
+                                        <p class="card-text descricao-fixa">{{ oportunidade.descricao|truncatechars:120 }}</p>
+                                        <p class="mb-1"><strong>Local:</strong> {{ oportunidade.local|truncatechars:30 }}</p>
+                                        <p class="mb-1"><strong>Vagas:</strong> {{ oportunidade.quantidade_vagas }}</p>
+                                        <p class="mb-1"><strong>Inscritos:</strong> {{ oportunidade.inscricoes.count }}</p>
+                                        <a href="{% url 'detalhe_oportunidade' oportunidade.id %}" class="btn btn-outline-primary mt-2">Ver detalhes</a>
+                                    </div>
                                 </div>
-                                <p class="mb-1">{{ oportunidade.descricao|truncatechars:100 }}</p>
-                                <small>
-                                    Local: {{ oportunidade.local }} | 
-                                    Vagas: {{ oportunidade.quantidade_vagas }} |
-                                    Inscritos: {{ oportunidade.inscricoes.count }}
-                                </small>
-                            </a>
+                            </div>
                         {% empty %}
-                            <div class="alert alert-info">
-                                Você ainda não criou nenhuma oportunidade.
-                                <a href="{% url 'criar_oportunidade' %}" class="alert-link">Criar uma oportunidade</a>
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    Você ainda não criou nenhuma oportunidade.
+                                    <a href="{% url 'criar_oportunidade' %}" class="alert-link">Criar uma oportunidade</a>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
                     <h3 class="mb-4">Minhas Inscrições</h3>
-                    <div class="list-group">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                         {% for inscricao in inscricoes %}
-                            <a href="{% url 'detalhe_oportunidade' inscricao.oportunidade.id %}" class="list-group-item list-group-item-action">
-                                <div class="d-flex align-items-center mb-2">
-                                    {% if inscricao.oportunidade.organizacao.foto %}
-                                        <img src="{{ inscricao.oportunidade.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                                    {% else %}
-                                        <img src="https://ui-avatars.com/api/?name={{ inscricao.oportunidade.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                                    {% endif %}
-                                    <h5 class="mb-1">{{ inscricao.oportunidade.titulo }}</h5>
-                                    <small class="ms-auto">{{ inscricao.data_inscricao|date:"d/m/Y" }}</small>
+                            <div class="col">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-2">
+                                            {% if inscricao.oportunidade.organizacao.foto %}
+                                                <img src="{{ inscricao.oportunidade.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% else %}
+                                                <img src="https://ui-avatars.com/api/?name={{ inscricao.oportunidade.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% endif %}
+                                            <h5 class="card-title mb-0">{{ inscricao.oportunidade.titulo|truncatechars:40 }}</h5>
+                                        </div>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{ inscricao.data_inscricao|date:"d/m/Y" }}</h6>
+                                        <p class="card-text descricao-fixa">{{ inscricao.oportunidade.descricao|truncatechars:120 }}</p>
+                                        <p class="mb-1"><strong>Organização:</strong> {{ inscricao.oportunidade.organizacao.nome|truncatechars:30 }}</p>
+                                        <p class="mb-1"><strong>Local:</strong> {{ inscricao.oportunidade.local|truncatechars:30 }}</p>
+                                        <p class="mb-1">
+                                            <strong>Status:</strong> 
+                                            <span class="badge {% if inscricao.status == 'finalizado' %}bg-success{% elif inscricao.status == 'em_progresso' %}bg-primary{% elif inscricao.status == 'pendente' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ inscricao.get_status_display }}
+                                            </span>
+                                        </p>
+                                        <a href="{% url 'detalhe_oportunidade' inscricao.oportunidade.id %}" class="btn btn-outline-primary mt-2">Ver detalhes</a>
+                                    </div>
                                 </div>
-                                <p class="mb-1">{{ inscricao.oportunidade.descricao|truncatechars:100 }}</p>
-                                <small>
-                                    Organização: {{ inscricao.oportunidade.organizacao.nome }} |
-                                    Local: {{ inscricao.oportunidade.local }} |
-                                    Status: <span class="badge {% if inscricao.status == 'confirmada' %}bg-success{% elif inscricao.status == 'pendente' %}bg-warning{% else %}bg-danger{% endif %}">
-                                        {{ inscricao.get_status_display }}
-                                    </span>
-                                </small>
-                            </a>
+                            </div>
                         {% empty %}
-                            <div class="alert alert-info">
-                                Você ainda não se inscreveu em nenhuma oportunidade.
-                                <a href="{% url 'home' %}" class="alert-link">Ver oportunidades disponíveis</a>
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    Você ainda não se inscreveu em nenhuma oportunidade.
+                                </div>
                             </div>
                         {% endfor %}
                     </div>

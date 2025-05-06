@@ -86,53 +86,75 @@
 </div>
 
 {% if user.is_authenticated and user.organizacao and inscritos %}
-    <div class="mt-4">
-        <h4>Inscritos nesta oportunidade</h4>
-        <div class="list-group">
-            {% for inscrito in inscritos %}
-                <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalInscrito{{ inscrito.id }}">
-                    {% if inscrito.voluntario.foto %}
-                        <img src="{{ inscrito.voluntario.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                    {% else %}
-                        <img src="https://ui-avatars.com/api/?name={{ inscrito.voluntario.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                    {% endif %}
-                    <span>{{ inscrito.voluntario.nome }}</span>
-                    <small class="ms-auto">{{ inscrito.data_inscricao|date:"d/m/Y H:i" }}</small>
-                </a>
-
-                <!-- Modal com detalhes do inscrito -->
-                <div class="modal fade" id="modalInscrito{{ inscrito.id }}" tabindex="-1" aria-labelledby="modalInscritoLabel{{ inscrito.id }}" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="modalInscritoLabel{{ inscrito.id }}">Detalhes do Inscrito</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                      </div>
-                      <div class="modal-body">
-                        <div class="text-center mb-3">
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Inscritos nesta oportunidade</h4>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for inscrito in inscritos %}
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center mb-2">
                             {% if inscrito.voluntario.foto %}
-                                <img src="{{ inscrito.voluntario.foto.url }}" alt="Foto" class="rounded-circle" style="width: 72px; height: 72px; object-fit: cover;">
+                                <img src="{{ inscrito.voluntario.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
                             {% else %}
-                                <img src="https://ui-avatars.com/api/?name={{ inscrito.voluntario.nome|urlencode }}&size=72&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle" style="width: 72px; height: 72px; object-fit: cover;">
+                                <img src="https://ui-avatars.com/api/?name={{ inscrito.voluntario.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
                             {% endif %}
-                            <h5 class="mt-2 mb-0">{{ inscrito.voluntario.nome }}</h5>
+                            <span>{{ inscrito.voluntario.nome }}</span>
+                            <small class="ms-auto">{{ inscrito.data_inscricao|date:"d/m/Y H:i" }}</small>
                         </div>
-                        <p><strong>Email:</strong> {{ inscrito.voluntario.email }}</p>
-                        <p><strong>Telefone:</strong> {{ inscrito.voluntario.telefone }}</p>
-                        <p><strong>Mensagem:</strong> {{ inscrito.mensagem|default:'-' }}</p>
-                        {% if inscrito.curriculo %}
-                            <p><strong>Currículo:</strong> <a href="{{ inscrito.curriculo.url }}" target="_blank" class="btn btn-sm btn-outline-primary">Baixar</a></p>
-                        {% endif %}
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                      </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge {% if inscrito.status == 'finalizado' %}bg-success{% elif inscrito.status == 'em_progresso' %}bg-primary{% elif inscrito.status == 'pendente' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ inscrito.get_status_display }}
+                                </span>
+                                {% if inscrito.mensagem %}
+                                    <p class="mt-2 mb-0"><small>{{ inscrito.mensagem }}</small></p>
+                                {% endif %}
+                            </div>
+                            <div class="btn-group">
+                                {% if inscrito.status == 'pendente' %}
+                                    <a href="{% url 'atualizar_status_inscricao' inscrito.id 'em_progresso' %}" class="btn btn-sm btn-primary">Aceitar</a>
+                                    <a href="{% url 'atualizar_status_inscricao' inscrito.id 'cancelada' %}" class="btn btn-sm btn-danger">Recusar</a>
+                                {% elif inscrito.status == 'em_progresso' %}
+                                    <a href="{% url 'atualizar_status_inscricao' inscrito.id 'finalizado' %}" class="btn btn-sm btn-success">Finalizar</a>
+                                {% endif %}
+                                {% if inscrito.status == 'finalizado' and not inscrito.feedbacks.exists %}
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalFeedback{{ inscrito.id }}">
+                                        Dar Feedback
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Modal de Feedback -->
+                        <div class="modal fade" id="modalFeedback{{ inscrito.id }}" tabindex="-1" aria-labelledby="modalFeedbackLabel{{ inscrito.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="post" action="{% url 'dar_feedback' inscrito.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="modalFeedbackLabel{{ inscrito.id }}">Dar Feedback para {{ inscrito.voluntario.nome }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            {{ feedback_form.as_p }}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary">Enviar Feedback</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                </div>
-            {% empty %}
-                <div class="alert alert-info">Nenhum inscrito nesta oportunidade ainda.</div>
-            {% endfor %}
+                {% empty %}
+                    <div class="alert alert-info">
+                        Nenhum inscrito ainda.
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 {% endif %}

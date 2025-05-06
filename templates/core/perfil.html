@@ -11,6 +11,10 @@
     opacity: 0.7;
     cursor: pointer;
 }
+
+.btn-danger {
+    margin-bottom: 20px;
+}
 </style>
 <div class="row">
     <div class="col-md-8 mx-auto">
@@ -63,6 +67,52 @@
         </div>
     </div>
 </div>
+
+{% if not is_organizacao %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Meus Feedbacks</h4>
+        </div>
+        <div class="card-body">
+            {% if feedbacks %}
+                <div class="list-group">
+                    {% for feedback in feedbacks %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if feedback.organizacao.foto %}
+                                    <img src="{{ feedback.organizacao.foto.url }}" alt="Foto" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ feedback.organizacao.nome|urlencode }}&size=36&background=0d6efd&color=fff" alt="Avatar" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0">{{ feedback.organizacao.nome }}</h6>
+                                    <small class="text-muted">{{ feedback.oportunidade.titulo }}</small>
+                                </div>
+                                <div class="ms-auto">
+                                    <div class="d-flex align-items-center">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= feedback.nota %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mb-0 mt-2">{{ feedback.comentario }}</p>
+                            <small class="text-muted">{{ feedback.data_cadastro|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Você ainda não recebeu nenhum feedback.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
 
 <div class="text-center mt-4">
     <form method="post" action="{% url 'logout' %}">

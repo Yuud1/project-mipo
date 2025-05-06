@@ -46,7 +46,8 @@ class Inscricao(models.Model):
     data_inscricao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=[
         ('pendente', 'Pendente'),
-        ('confirmada', 'Confirmada'),
+        ('em_progresso', 'Em Progresso'),
+        ('finalizado', 'Finalizado'),
         ('cancelada', 'Cancelada')
     ], default='pendente')
     mensagem = models.TextField(blank=True, null=True)
@@ -59,15 +60,31 @@ class Inscricao(models.Model):
         return f"{self.voluntario.nome} - {self.oportunidade.titulo}"
 
 class Feedback(models.Model):
-    colaborador = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks_dados')
+    organizacao = models.ForeignKey(Organizacao, on_delete=models.CASCADE, related_name='feedbacks_enviados')
     voluntario = models.ForeignKey(Voluntario, on_delete=models.CASCADE, related_name='feedbacks_recebidos')
-    oportunidade = models.ForeignKey(Oportunidade, on_delete=models.CASCADE, related_name='feedbacks')
+    oportunidade = models.ForeignKey(Oportunidade, on_delete=models.CASCADE, related_name='feedbacks', blank=True, null=True)
+    inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='feedbacks', blank=True, null=True)
     nota = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    descricao = models.TextField()
+    comentario = models.TextField()
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['colaborador', 'voluntario', 'oportunidade']
+        unique_together = ['inscricao', 'organizacao', 'voluntario']
 
     def __str__(self):
-        return f"Feedback de {self.colaborador.username} para {self.voluntario.nome}"
+        return f"Feedback de {self.organizacao.nome} para {self.voluntario.nome}"
+
+class Certificado(models.Model):
+    voluntario = models.ForeignKey(Voluntario, on_delete=models.CASCADE, related_name='certificados')
+    oportunidade = models.ForeignKey(Oportunidade, on_delete=models.CASCADE, related_name='certificados')
+    data_emissao = models.DateTimeField(auto_now_add=True)
+    codigo = models.CharField(max_length=50, unique=True)
+    horas = models.PositiveIntegerField()
+    descricao = models.TextField()
+    arquivo = models.FileField(upload_to='certificados/', blank=True, null=True)
+
+    def __str__(self):
+        return f"Certificado - {self.voluntario.nome} - {self.oportunidade.titulo}"
+
+    class Meta:
+        ordering = ['-data_emissao']

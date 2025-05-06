@@ -36,7 +36,7 @@
 
         {% if ultimas_vagas %}
         <!-- Carrossel das 3 últimas vagas -->
-        <div id="carrosselVagas" class="carousel slide mb-5" data-bs-ride="carousel">
+        <div id="carrosselVagas" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="5000">
             <div class="carousel-indicators">
                 {% for vaga in ultimas_vagas %}
                 <button type="button" data-bs-target="#carrosselVagas" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
@@ -109,4 +109,14 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var carrossel = new bootstrap.Carousel(document.getElementById('carrosselVagas'), {
+        interval: 5000, // 5 segundos
+        wrap: true,
+        pause: 'hover'
+    });
+});
+</script>
 {% endblock %}

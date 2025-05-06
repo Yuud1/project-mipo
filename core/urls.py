@@ -13,4 +13,7 @@ urlpatterns = [
     path('criar_oportunidade/', views.criar_oportunidade, name='criar_oportunidade'),
     path('oportunidade/<int:oportunidade_id>/', views.detalhe_oportunidade, name='detalhe_oportunidade'),
     path('oportunidade/<int:oportunidade_id>/inscrever/', views.inscrever_oportunidade, name='inscrever_oportunidade'),
+    path('inscricao/<int:inscricao_id>/status/<str:novo_status>/', views.atualizar_status_inscricao, name='atualizar_status_inscricao'),
+    path('inscricao/<int:inscricao_id>/feedback/', views.dar_feedback, name='dar_feedback'),
+    path('certificados/', views.certificados, name='certificados'),
 ]

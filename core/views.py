@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Oportunidade, Inscricao, Voluntario, Organizacao
+from .models import Oportunidade, Inscricao, Voluntario, Organizacao, Feedback, Certificado
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib import messages
-from .forms import OportunidadeForm, UserRegistrationForm, VoluntarioRegistrationForm, OrganizacaoRegistrationForm, InscricaoForm
+from .forms import OportunidadeForm, UserRegistrationForm, VoluntarioRegistrationForm, OrganizacaoRegistrationForm, InscricaoForm, FeedbackForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.db.models import Q
 
@@ -100,10 +100,12 @@ def perfil(request):
         perfil = request.user.organizacao
         is_organizacao = True
         oportunidades = Oportunidade.objects.filter(organizacao=perfil).order_by('-data_cadastro')
+        feedbacks = None
     else:
         perfil = request.user.voluntario
         is_organizacao = False
         inscricoes = Inscricao.objects.filter(voluntario=perfil).order_by('-data_inscricao')
+        feedbacks = Feedback.objects.filter(voluntario=perfil).select_related('organizacao', 'oportunidade').order_by('-data_cadastro')
 
     # Processa upload da foto
     if request.method == 'POST' and 'foto' in request.FILES:
@@ -116,7 +118,8 @@ def perfil(request):
         'perfil': perfil,
         'is_organizacao': is_organizacao,
         'oportunidades': oportunidades if is_organizacao else None,
-        'inscricoes': inscricoes if not is_organizacao else None
+        'inscricoes': inscricoes if not is_organizacao else None,
+        'feedbacks': feedbacks
     })
 
 def pesquisa(request):
@@ -142,6 +145,7 @@ def detalhe_oportunidade(request, oportunidade_id):
     ja_inscrito = False
     form = None
     inscritos = None
+    feedback_form = None
 
     if hasattr(request.user, 'voluntario'):
         voluntario = request.user.voluntario
@@ -163,13 +167,54 @@ def detalhe_oportunidade(request, oportunidade_id):
                 form = InscricaoForm()
     elif hasattr(request.user, 'organizacao') and oportunidade.organizacao == request.user.organizacao:
         inscritos = Inscricao.objects.filter(oportunidade=oportunidade).select_related('voluntario')
+        feedback_form = FeedbackForm()
 
     return render(request, 'core/detalhe_oportunidade.html', {
         'oportunidade': oportunidade,
         'ja_inscrito': ja_inscrito,
         'form': form,
-        'inscritos': inscritos
+        'inscritos': inscritos,
+        'feedback_form': feedback_form
     })
+
+@login_required
+def atualizar_status_inscricao(request, inscricao_id, novo_status):
+    """Atualiza o status de uma inscrição"""
+    inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+    
+    # Verifica se o usuário é da organização dona da oportunidade
+    if not hasattr(request.user, 'organizacao') or inscricao.oportunidade.organizacao != request.user.organizacao:
+        messages.error(request, 'Você não tem permissão para realizar esta ação.')
+        return redirect('detalhe_oportunidade', oportunidade_id=inscricao.oportunidade.id)
+    
+    inscricao.status = novo_status
+    inscricao.save()
+    messages.success(request, f'Status da inscrição atualizado para {inscricao.get_status_display()}')
+    return redirect('detalhe_oportunidade', oportunidade_id=inscricao.oportunidade.id)
+
+@login_required
+def dar_feedback(request, inscricao_id):
+    """Adiciona feedback para uma inscrição"""
+    inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+    
+    # Verifica se o usuário é da organização dona da oportunidade
+    if not hasattr(request.user, 'organizacao') or inscricao.oportunidade.organizacao != request.user.organizacao:
+        messages.error(request, 'Você não tem permissão para realizar esta ação.')
+        return redirect('detalhe_oportunidade', oportunidade_id=inscricao.oportunidade.id)
+    
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.organizacao = request.user.organizacao
+            feedback.voluntario = inscricao.voluntario
+            feedback.oportunidade = inscricao.oportunidade
+            feedback.inscricao = inscricao
+            feedback.save()
+            messages.success(request, 'Feedback enviado com sucesso!')
+            return redirect('detalhe_oportunidade', oportunidade_id=inscricao.oportunidade.id)
+    
+    return redirect('detalhe_oportunidade', oportunidade_id=inscricao.oportunidade.id)
 
 @login_required
 def inscrever_oportunidade(request, oportunidade_id):
@@ -207,3 +252,21 @@ def login(request):
         form = AuthenticationForm()
     
     return render(request, 'core/login.html', {'form': form})
+
+@login_required
+def certificados(request):
+    if hasattr(request.user, 'organizacao'):
+        feedbacks_dados = Feedback.objects.filter(organizacao=request.user.organizacao)
+        feedbacks_recebidos = None
+        certificados = None
+    else:
+        feedbacks_dados = None
+        feedbacks_recebidos = Feedback.objects.filter(voluntario=request.user.voluntario)
+        certificados = Certificado.objects.filter(voluntario=request.user.voluntario).select_related('oportunidade')
+    
+    context = {
+        'feedbacks_dados': feedbacks_dados,
+        'feedbacks_recebidos': feedbacks_recebidos,
+        'certificados': certificados
+    }
+    return render(request, 'core/certificados.html', context)

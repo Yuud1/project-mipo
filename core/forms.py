@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Voluntario, Organizacao, Oportunidade, Inscricao
+from .models import Voluntario, Organizacao, Oportunidade, Inscricao, Feedback
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -41,4 +41,13 @@ class InscricaoForm(forms.ModelForm):
         fields = ['mensagem', 'curriculo']
         widgets = {
             'mensagem': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Deixe uma mensagem para a instituição (opcional)...'}),
+        }
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['nota', 'comentario']
+        widgets = {
+            'comentario': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Deixe seu feedback sobre o voluntário...'}),
+            'nota': forms.NumberInput(attrs={'min': 1, 'max': 5}),
         }
